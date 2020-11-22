@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Asthma Companion</string>
+    <string name="title_home">Home</string>
+    <string name="title_analytics">Analytics</string>
+    <string name="title_dashboard">Dashboard</string>
+
+    <integer name="swing_anim_time">1500</integer>
+
+    <string name="asthma_tips_header">Asthma Relief Tips</string>
+    <string name="asthma_info_details">
+        1. Stop whatever you are doing and sit upright. Bending over or lying down can constrict your breathing even more. \n\n
+        2. Take long, deep breaths helps to slow down your breathing and prevent hyperventilation.
+        Breathe in through your nose and breathe out through your mouth. \n\n
+        3. Stay calm as it prevents further tightening of your chest muscles and makes your breathing easier. \n\n
+        4. The asthma attack could be triggered by dust or chemicals. Get away from the trigger as soon as possible
+        and go to any place with clean air. \n\n
+        5. Hot caffeinated drinks help to open up the airways slightly, providing some relief for an hour or two. \n\n
+        6. If the wheezing, coughing and breathing difficulty do not subside after a period of rest, seek immediate medical attention. \n
+    </string>
+
+    <string name="hot_line">Asthma Hotline</string>
+    <string name="emergency">Emergency Contact</string>
+    <string name="hot_line_details">
+        Toll-Free No: \n
+        1-800-7-ASTHMA \n
+        Available Mon - Fri, 10AM - 3PM
+    </string>
+
+    <string name="sign_up_here"><u>Sign Up Here</u></string>
+</resources>

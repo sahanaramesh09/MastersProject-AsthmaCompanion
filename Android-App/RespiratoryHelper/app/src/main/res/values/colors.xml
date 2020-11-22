@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+
+    <color name="material_blue">#6452f0</color>
+    <color name="material_red">#ff2e63</color>
+    <color name="material_green">#22c25e</color>
+    <color name="material_orange">#ff9a00</color>
+
+    <color name="colorWhite">#FFFFFF</color>
+
+    <color name="overlay_dark_50">#40000000</color>
+    <color name="grey_10">#e6e6e6</color>
+    <color name="green_success">#155724</color>
+    <color name="colorPrimaryNight">#263238</color>
+    <color name="colorPrimaryDarkNight">#141d26</color>
+    <color name="scrim">#99323232</color>
+
+    <color name="blue_login_background">#3700be</color>
+    <color name="cream_text_login_background">#eff3c6</color>
+    <color name="orange_button_sign_in">#ffa41b</color>
+
+    <color name="sign_in_hint_color">#88eff3c6</color>
+    <color name="Blue">#0F86E1</color>
+</resources>
