@@ -1,8 +1,8 @@
 package com.sjsu.respiratoryhelper;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,11 +11,24 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.sjsu.respiratoryhelper.appconfig.BaseHelper;
+import com.sjsu.respiratoryhelper.model.UserDetails;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SignUpActivity extends AppCompatActivity {
 
+    private static final String TAG = "SignUpActivity";
+
     EditText etName, etEmail, etPassword, etConfPass;
     Button btSignup;
+
+    Retrofit retrofit;
+    DataSourceApi dataSourceApi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,24 +61,41 @@ public class SignUpActivity extends AppCompatActivity {
                 } else if (!password.equals(confpass)) {
                     Toast.makeText(SignUpActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(SignUpActivity.this, "Account Created Successfully! Please Login with your email and password ", Toast.LENGTH_LONG).show();
-                    setSampleUsers();
 
-                    Intent i = new Intent(SignUpActivity.this, SignInActivity.class);
-                    startActivity(i);
-                    finish();
+                    //Call the api
+                    retrofit = new Retrofit.Builder()
+                            .baseUrl(BaseHelper.SERVER_PREFIX)
+                            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
+
+                    dataSourceApi = retrofit.create(DataSourceApi.class);
+
+                    UserDetails userDetails = new UserDetails();
+                    userDetails.setUserName(name);
+                    userDetails.setEmail(email);
+                    userDetails.setPassword(password);
+                    Call<UserDetails> call = dataSourceApi.sendPosts(userDetails);
+                    call.enqueue(new Callback<UserDetails>() {
+                        @Override
+                        public void onResponse(Call<UserDetails> call, Response<UserDetails> response) {
+                            Toast.makeText(SignUpActivity.this, "Account Created Successfully! Please Login with your email and password ", Toast.LENGTH_LONG).show();
+                            Intent i = new Intent(SignUpActivity.this, SignInActivity.class);
+                            startActivity(i);
+                            finish();
+                        }
+
+                        @Override
+                        public void onFailure(Call<UserDetails> call, Throwable t) {
+                            Toast.makeText(SignUpActivity.this, "Error occurred during Sign Up! Try Again.", Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "Error : " + t.toString());
+                            Intent signUpIntent = new Intent(SignUpActivity.this, SignUpActivity.class);
+                            startActivity(signUpIntent);
+                            finish();
+                        }
+                    });
                 }
             }
         });
-    }
-
-    private void setSampleUsers() {
-        SharedPreferences mSharedPreferences = getSharedPreferences(BaseHelper.APP_SHARED_PREF, MODE_PRIVATE);
-        SharedPreferences.Editor mEditor = mSharedPreferences.edit();
-        mEditor.putString("sahana@gmail.com", "sahana");
-        mEditor.putString("nithya@gmail.com", "nithya");
-        mEditor.putString("kavya@gmail.com", "kavya");
-        mEditor.putString("chandra@gmail.com", "chandra");
-        mEditor.apply();
     }
 }

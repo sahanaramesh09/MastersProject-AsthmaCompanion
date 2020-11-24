@@ -3,7 +3,6 @@ package com.sjsu.respiratoryhelper;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -12,12 +11,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sjsu.respiratoryhelper.appconfig.BaseHelper;
+import com.sjsu.respiratoryhelper.model.UserDetails;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SignInActivity extends AppCompatActivity {
 
     EditText etEmail, etPassword;
     Button btSignin;
     TextView tvSignup;
+
+    Retrofit retrofit;
+    DataSourceApi dataSourceApi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,19 +54,34 @@ public class SignInActivity extends AppCompatActivity {
                 } else if (password.equals("")) {
                     Toast.makeText(SignInActivity.this, "Password required", Toast.LENGTH_SHORT).show();
                 } else {
-                    String checkValidity = checkForUsers(email);
-                    if (checkValidity.equals(password)){
-                        Toast.makeText(SignInActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                        //Authentication
-                        Intent hp = new Intent(SignInActivity.this, MainActivity.class);
-                        startActivity(hp);
-                        finish();
-                    } else {
-                        Toast.makeText(SignInActivity.this, "Incorrect email id or password. Login Failed!", Toast.LENGTH_SHORT).show();
-                        Intent ma = new Intent(SignInActivity.this, SignInActivity.class);
-                        startActivity(ma);
-                        finish();
-                    }
+                    retrofit = new Retrofit.Builder()
+                            .baseUrl(BaseHelper.SERVER_PREFIX)
+                            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
+
+                    dataSourceApi = retrofit.create(DataSourceApi.class);
+                    UserDetails userDetails = new UserDetails();
+                    userDetails.setEmail(email);
+                    userDetails.setPassword(password);
+                    Call<UserDetails> call = dataSourceApi.login(userDetails);
+                    call.enqueue(new Callback<UserDetails>() {
+                        @Override
+                        public void onResponse(Call<UserDetails> call, Response<UserDetails> response) {
+                            Toast.makeText(SignInActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
+                            Intent loginIntent = new Intent(SignInActivity.this, MainActivity.class);
+                            startActivity(loginIntent);
+                            finish();
+                        }
+
+                        @Override
+                        public void onFailure(Call<UserDetails> call, Throwable t) {
+                            Toast.makeText(SignInActivity.this, "Incorrect Email Id or Password. Login Failed!", Toast.LENGTH_SHORT).show();
+                            Intent loginIntent = new Intent(SignInActivity.this, SignInActivity.class);
+                            startActivity(loginIntent);
+                            finish();
+                        }
+                    });
                 }
             }
         });
@@ -71,10 +96,5 @@ public class SignInActivity extends AppCompatActivity {
             }
         });
 
-    }
-
-    private String checkForUsers(String email) {
-        SharedPreferences mSharedPreferences = getSharedPreferences(BaseHelper.APP_SHARED_PREF, MODE_PRIVATE);
-        return mSharedPreferences.getString(email, "");
     }
 }
