@@ -132,9 +132,9 @@ public class HomeFragment extends Fragment {
                 temperature.setText(" Temperature : " + resultItems.get(i).getTemperature() + ((char) 0x00B0) + "c");
                 humidity.setText(" Humidity : " + resultItems.get(i).getHumidity() + " % ");
                 weatherAnimation.setVisibility(View.VISIBLE);
-                co.setText(" CO : " + resultItems.get(i).getCO());
-                no2.setText(" NO2 : " + resultItems.get(i).getNO2());
-                o3.setText(" O3 : " + resultItems.get(i).getO3());
+                co.setText(" CO : " + resultItems.get(i).getCO() + " mg/m^3");
+                no2.setText(" NO2 : " + resultItems.get(i).getNO2()+ " microg/m^3");
+                o3.setText(" O3 : " + resultItems.get(i).getO3()+ " mg/m^3");
 
                 asthmaRiskData = resultItems.get(i).getAsthmaRisk();
                 if (asthmaRiskData.equalsIgnoreCase("1")) {

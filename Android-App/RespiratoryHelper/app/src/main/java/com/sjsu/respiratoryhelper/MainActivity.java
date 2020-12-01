@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
     private void resetEmergencyNo() {
         SharedPreferences mSharedPreferences = getSharedPreferences(BaseHelper.APP_SHARED_PREF, MODE_PRIVATE);
         SharedPreferences.Editor mEditor = mSharedPreferences.edit();
-        mEditor.putString(BaseHelper.EMERGENCY_PHN_NO, "6692268385");
+        mEditor.putString(BaseHelper.EMERGENCY_PHN_NO, "6506958887");
         mEditor.putBoolean(BaseHelper.EMERGENCY_NO_FLAG, false);
         mEditor.apply();
     }

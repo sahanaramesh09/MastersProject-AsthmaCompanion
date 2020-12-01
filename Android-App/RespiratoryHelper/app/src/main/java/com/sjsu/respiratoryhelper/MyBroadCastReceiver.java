@@ -11,13 +11,29 @@ import android.content.Intent;
 import android.os.Build;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
+import android.view.View;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
+
+import com.sjsu.respiratoryhelper.appconfig.BaseHelper;
+import com.sjsu.respiratoryhelper.model.ResponseModel;
+import com.sjsu.respiratoryhelper.model.ResultItem;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
@@ -28,6 +44,14 @@ public class MyBroadCastReceiver extends BroadcastReceiver {
     public static final int NOTIFICATION_ID_BROADCAST = 6001;
     private NotificationManagerCompat notificationManager;
 
+    Retrofit retrofit;
+    Disposable disposable;
+    DataSourceApi dataSourceApi;
+
+    public static int GAP_PERIOD = 60000;
+    private static int INITIAL_DELAY = 1000;
+    private static boolean isRiskScoreLow = false;
+
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction() != null && intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
@@ -36,16 +60,68 @@ public class MyBroadCastReceiver extends BroadcastReceiver {
             context.startService(serviceIntent);
         } else {
             Log.d(TAG, "@@@@ Just ran time : " + System.currentTimeMillis());
-            // Toast.makeText(context.getApplicationContext(), "Just ran", Toast.LENGTH_LONG).show();
 
             // Creating Notification Channel
             createNotificationChannel(context);
             notificationManager = NotificationManagerCompat.from(context);
 
-            if (!(appInForeground(context)) && !(isNotificationActive(context))){
+            //Call the api
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(BaseHelper.SERVER_PREFIX)
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            dataSourceApi = retrofit.create(DataSourceApi.class);
+            //Call it at repeated interval
+            disposable = Observable.interval(INITIAL_DELAY, GAP_PERIOD,
+                    TimeUnit.MILLISECONDS)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(this::callAsthmaRisk, this::onError);
+
+
+            if (!(appInForeground(context)) && !(isNotificationActive(context)) && !isRiskScoreLow){
                 showNotification(context, intent);
             }
         }
+    }
+
+    private void callAsthmaRisk(Long aLong) {
+        Observable<ResponseModel> observable = dataSourceApi.getResults();
+        Disposable subscribe = observable.subscribeOn(Schedulers.newThread()).
+                observeOn(AndroidSchedulers.mainThread())
+                .map(result -> result.resultItems)
+                .subscribe(this::handleResults, this::handleError);
+    }
+
+
+    private void onError(Throwable throwable) {
+        Log.d(TAG, "OnError in Broadcast Receiver");
+    }
+
+    private void handleResults(List<ResultItem> resultItems) {
+        if (!resultItems.isEmpty()) {
+            for (int i = 0; i < resultItems.size(); i++) {
+                Log.d(TAG, "@@@@ Asthma Risk value : " + resultItems.get(i).getAsthmaRisk());
+
+
+                String asthmaRiskData = resultItems.get(i).getAsthmaRisk();
+                if (asthmaRiskData.equalsIgnoreCase("1")) {
+                    Log.d(TAG, "Asthma Risk data is 1 which is high");
+                    // We can show alert or something
+                    isRiskScoreLow = false;
+                } else {
+                    Log.d(TAG, "Asthma Risk data is 0 which is LOW : "+asthmaRiskData);
+                    isRiskScoreLow = true;
+                }
+            }
+        } else {
+            Log.d(TAG, "No results found in Broadcast Receiver");
+        }
+    }
+
+    private void handleError(Throwable t) {
+        Log.e(TAG, "@@@@ handleError in Broadcast Receiver : " + t.toString());
     }
 
     private boolean isNotificationActive(Context context){
